@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useTrafficData } from '@/hooks/useTrafficData';
 import { TrafficMapMarker } from '@/components/traffic/TrafficMapMarker';
 import { TrafficInfoSheet } from '@/components/traffic/TrafficInfoSheet';
+import { GoogleMapView } from '@/components/traffic/GoogleMapView';
+import { TrafficStatisticsChart } from '@/components/traffic/TrafficStatisticsChart';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -12,14 +14,20 @@ import {
   Navigation, 
   RefreshCw,
   Menu,
-  X
+  X,
+  Map,
+  BarChart3
 } from 'lucide-react';
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 export default function PublicTrafficMap() {
   const { intersections, selectedId, setSelectedId } = useTrafficData();
   const [searchQuery, setSearchQuery] = useState('');
   const [showMenu, setShowMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [viewMode, setViewMode] = useState<'map' | 'stats'>('map');
+  const [useGoogleMaps, setUseGoogleMaps] = useState(!!GOOGLE_MAPS_API_KEY);
 
   const selectedIntersection = intersections.find(i => i.id === selectedId) || null;
   
@@ -75,79 +83,151 @@ export default function PublicTrafficMap() {
               <Navigation className="w-4 h-4 mr-2" />
               ใช้ตำแหน่งปัจจุบัน
             </Button>
+            {GOOGLE_MAPS_API_KEY && (
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => setUseGoogleMaps(!useGoogleMaps)}
+              >
+                <Map className="w-4 h-4 mr-2" />
+                {useGoogleMaps ? 'ใช้แผนที่แบบง่าย' : 'ใช้ Google Maps'}
+              </Button>
+            )}
           </div>
         )}
       </header>
 
-      {/* Map area */}
+      {/* View toggle */}
+      <div className="bg-card border-b px-4 py-2">
+        <div className="flex gap-2">
+          <Button 
+            variant={viewMode === 'map' ? 'default' : 'outline'} 
+            size="sm"
+            onClick={() => setViewMode('map')}
+            className="flex-1"
+          >
+            <Map className="w-4 h-4 mr-2" />
+            แผนที่
+          </Button>
+          <Button 
+            variant={viewMode === 'stats' ? 'default' : 'outline'} 
+            size="sm"
+            onClick={() => setViewMode('stats')}
+            className="flex-1"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            สถิติ
+          </Button>
+        </div>
+      </div>
+
+      {/* Main content */}
       <main className="flex-1 relative">
-        {/* Simulated map background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50">
-          {/* Grid pattern for map-like feel */}
-          <div className="absolute inset-0 opacity-20" style={{
-            backgroundImage: `
-              linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
-              linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)
-            `,
-            backgroundSize: '40px 40px'
-          }} />
-        </div>
-
-        {/* Traffic markers */}
-        <div className="relative h-full p-4">
-          <div className="grid grid-cols-2 gap-8 place-items-center h-full py-8">
-            {filteredIntersections.map((intersection, index) => (
-              <div 
-                key={intersection.id}
-                className="transform"
-                style={{
-                  transform: `translate(${(index % 2 - 0.5) * 20}px, ${Math.floor(index / 2) * 10}px)`
-                }}
-              >
-                <TrafficMapMarker
-                  intersection={intersection}
-                  isSelected={selectedId === intersection.id}
+        {viewMode === 'stats' ? (
+          <div className="p-4 space-y-4 overflow-auto h-full">
+            <TrafficStatisticsChart />
+            
+            {/* Intersection list for stats */}
+            <div className="space-y-3">
+              <h3 className="font-semibold">เลือกแยกเพื่อดูสถิติ</h3>
+              {filteredIntersections.map((intersection) => (
+                <Button
+                  key={intersection.id}
+                  variant={selectedId === intersection.id ? 'default' : 'outline'}
+                  className="w-full justify-start"
                   onClick={() => setSelectedId(intersection.id)}
-                />
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  {intersection.name}
+                  <Badge className="ml-auto" variant="secondary">
+                    {intersection.totalVehicles} คัน
+                  </Badge>
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : useGoogleMaps && GOOGLE_MAPS_API_KEY ? (
+          <GoogleMapView
+            intersections={filteredIntersections}
+            selectedId={selectedId}
+            onSelectIntersection={setSelectedId}
+            apiKey={GOOGLE_MAPS_API_KEY}
+          />
+        ) : (
+          <>
+            {/* Simulated map background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50">
+              {/* Grid pattern for map-like feel */}
+              <div className="absolute inset-0 opacity-20" style={{
+                backgroundImage: `
+                  linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+                  linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)
+                `,
+                backgroundSize: '40px 40px'
+              }} />
+            </div>
+
+            {/* Traffic markers */}
+            <div className="relative h-full p-4">
+              <div className="grid grid-cols-2 gap-8 place-items-center h-full py-8">
+                {filteredIntersections.map((intersection, index) => (
+                  <div 
+                    key={intersection.id}
+                    className="transform"
+                    style={{
+                      transform: `translate(${(index % 2 - 0.5) * 20}px, ${Math.floor(index / 2) * 10}px)`
+                    }}
+                  >
+                    <TrafficMapMarker
+                      intersection={intersection}
+                      isSelected={selectedId === intersection.id}
+                      onClick={() => setSelectedId(intersection.id)}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
 
-        {/* Legend */}
-        <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur rounded-lg p-3 shadow-lg">
-          <p className="text-xs font-medium mb-2">ระดับการจราจร</p>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-traffic-green" />
-              <span className="text-xs">คล่องตัว (≤2 นาที)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-traffic-yellow" />
-              <span className="text-xs">หนาแน่นปานกลาง (3-5 นาที)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-traffic-red" />
-              <span className="text-xs">หนาแน่นมาก (&gt;5 นาที)</span>
+        {/* Legend - only show in map mode */}
+        {viewMode === 'map' && !useGoogleMaps && (
+          <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur rounded-lg p-3 shadow-lg">
+            <p className="text-xs font-medium mb-2">ระดับการจราจร</p>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-traffic-green" />
+                <span className="text-xs">คล่องตัว (≤2 นาที)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-traffic-yellow" />
+                <span className="text-xs">หนาแน่นปานกลาง (3-5 นาที)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-traffic-red" />
+                <span className="text-xs">หนาแน่นมาก (&gt;5 นาที)</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Stats summary */}
-        <div className="absolute top-4 right-4 bg-card/95 backdrop-blur rounded-lg p-3 shadow-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">{intersections.length} แยก</span>
+        {/* Stats summary - only show in map mode */}
+        {viewMode === 'map' && (
+          <div className="absolute top-4 right-4 bg-card/95 backdrop-blur rounded-lg p-3 shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">{intersections.length} แยก</span>
+            </div>
+            <div className="flex gap-2">
+              <Badge className="bg-traffic-green/20 text-traffic-green hover:bg-traffic-green/30">
+                {intersections.filter(i => i.estimatedWaitMinutes <= 2).length} คล่องตัว
+              </Badge>
+              <Badge className="bg-traffic-red/20 text-traffic-red hover:bg-traffic-red/30">
+                {intersections.filter(i => i.estimatedWaitMinutes > 5).length} หนาแน่น
+              </Badge>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Badge className="bg-traffic-green/20 text-traffic-green hover:bg-traffic-green/30">
-              {intersections.filter(i => i.estimatedWaitMinutes <= 2).length} คล่องตัว
-            </Badge>
-            <Badge className="bg-traffic-red/20 text-traffic-red hover:bg-traffic-red/30">
-              {intersections.filter(i => i.estimatedWaitMinutes > 5).length} หนาแน่น
-            </Badge>
-          </div>
-        </div>
+        )}
       </main>
 
       {/* Bottom hint */}
