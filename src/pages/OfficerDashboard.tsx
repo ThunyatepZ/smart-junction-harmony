@@ -3,10 +3,12 @@ import { useTrafficData } from '@/hooks/useTrafficData';
 import { IntersectionControl } from '@/components/traffic/IntersectionControl';
 import { CameraFeed } from '@/components/traffic/CameraFeed';
 import { ModeSelector } from '@/components/traffic/ModeSelector';
+import { TrafficStatisticsChart } from '@/components/traffic/TrafficStatisticsChart';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   TrafficCone, 
   LogOut, 
@@ -16,7 +18,8 @@ import {
   Clock, 
   Settings,
   LayoutGrid,
-  Maximize2
+  Maximize2,
+  BarChart3
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { TrafficDirection } from '@/types/traffic';
@@ -227,6 +230,9 @@ export default function OfficerDashboard() {
                 </p>
               </Card>
             )}
+
+            {/* Traffic Statistics Chart */}
+            <TrafficStatisticsChart intersectionName={intersection.name} />
           </div>
         </div>
       </main>
