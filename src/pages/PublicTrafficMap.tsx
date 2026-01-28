@@ -60,6 +60,29 @@ export default function PublicTrafficMap() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-9"
               />
+              {/* Search dropdown */}
+              {searchQuery && filteredIntersections.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-card border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                  {filteredIntersections.map((intersection) => (
+                    <button
+                      key={intersection.id}
+                      className="w-full px-3 py-2 text-left hover:bg-muted flex items-center gap-2 transition-colors"
+                      onClick={() => {
+                        setSelectedId(intersection.id);
+                        setSearchQuery('');
+                      }}
+                    >
+                      <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{intersection.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {intersection.totalVehicles} คัน • รอ {intersection.estimatedWaitMinutes} นาที
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
