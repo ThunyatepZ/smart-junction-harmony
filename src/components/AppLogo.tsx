@@ -1,4 +1,3 @@
-import trafficInloveLogo from '@/assets/Traffic_inlove_logo.png';
 import { useNavigate } from 'react-router-dom';
 
 interface AppLogoProps {
@@ -29,12 +28,10 @@ export default function AppLogo({
 
     const content = (
         <div className={`flex items-center gap-${isLarge ? '3' : '2'}`}>
-            {/* ===== แก้ Logo ที่นี่ ===== */}
-            <img
-                src={trafficInloveLogo}
-                alt="Traffic in Love Logo"
-                className={`${isLarge ? 'w-12 h-12' : 'w-8 h-8'} object-contain rounded-lg`}
-            />
+            {/* ===== แก้ Logo Icon ที่นี่ ===== */}
+            <div className={`p-${isLarge ? '3' : '2'} bg-primary rounded-xl`}>
+                <img src="Traffic_inlove_logo.png" alt="" />
+            </div>
             <div>
                 <span className={`font-bold ${isLarge ? 'text-2xl' : 'text-lg'} ${isLight ? 'text-background' : ''}`}>
                     {APP_NAME}
