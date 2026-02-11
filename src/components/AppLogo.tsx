@@ -1,0 +1,67 @@
+import trafficInloveLogo from '@/assets/Traffic_inlove_logo.png';
+import { useNavigate } from 'react-router-dom';
+
+interface AppLogoProps {
+    /** ขนาดของ logo: 'sm' สำหรับ navbar, 'lg' สำหรับ hero */
+    size?: 'sm' | 'lg';
+    /** แสดงคำอธิบายย่อยใต้ชื่อหรือไม่ */
+    showSubtitle?: boolean;
+    /** คลิกแล้วกลับหน้าแรกหรือไม่ */
+    clickable?: boolean;
+    /** สีข้อความ (ใช้กับพื้นหลังเข้ม) */
+    variant?: 'default' | 'light';
+}
+
+// ===== แก้ชื่อเว็บ + คำอธิบายที่นี่ที่เดียว =====
+const APP_NAME = 'Traffic in Love';
+const APP_SUBTITLE = 'ระบบควบคุมจราจรอัจฉริยะ';
+
+export default function AppLogo({
+    size = 'sm',
+    showSubtitle = false,
+    clickable = false,
+    variant = 'default'
+}: AppLogoProps) {
+    const navigate = useNavigate();
+
+    const isLarge = size === 'lg';
+    const isLight = variant === 'light';
+
+    const content = (
+        <div className={`flex items-center gap-${isLarge ? '3' : '2'}`}>
+            {/* ===== แก้ Logo ที่นี่ ===== */}
+            <img
+                src={trafficInloveLogo}
+                alt="Traffic in Love Logo"
+                className={`${isLarge ? 'w-12 h-12' : 'w-8 h-8'} object-contain rounded-lg`}
+            />
+            <div>
+                <span className={`font-bold ${isLarge ? 'text-2xl' : 'text-lg'} ${isLight ? 'text-background' : ''}`}>
+                    {APP_NAME}
+                </span>
+                {showSubtitle && (
+                    <p className={`text-sm ${isLight ? 'text-background/70' : 'text-muted-foreground'}`}>
+                        {APP_SUBTITLE}
+                    </p>
+                )}
+            </div>
+        </div>
+    );
+
+    if (clickable) {
+        return (
+            <button
+                onClick={() => navigate('/')}
+                className="hover:opacity-80 transition-opacity"
+                aria-label="กลับหน้าแรก"
+            >
+                {content}
+            </button>
+        );
+    }
+
+    return content;
+}
+
+export { APP_NAME, APP_SUBTITLE };
+
